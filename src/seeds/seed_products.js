@@ -1,36 +1,51 @@
 const mongoose = require('mongoose')
 const Product = require('../api/models/products')
+const User = require('../api/models/users')
+const Project = require('../api/models/projects')
+require('dotenv').config()
 
-mongoose.connect(process.env.MONGODB_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+mongoose.connect(process.env.DB_URL)
 
-const products = [
-  {
-    name: 'Product 1',
-    productType: 'Type A',
-    project: '60f5a3a8b6e15c001c8b1d19',
-    createdBy: '60f5a3a8b6e15c001c8b1d1a',
+const seedProducts = async () => {
+  try {
+    const project = await Project.findOne()
+    if (!project) {
+      console.error('No project found, create a project first.')
+      mongoose.connection.close()
+      return
+    }
 
-    verified: true
-  },
-  {
-    name: 'Product 2',
-    productType: 'Type B',
-    project: '60f5a3a8b6e15c001c8b1d19',
-    createdBy: '60f5a3a8b6e15c001c8b1d1a',
+    const user = await User.findOne()
+    if (!user) {
+      console.error('No user found, create a user first.')
+      mongoose.connection.close()
+      return
+    }
 
-    verified: false
-  }
-]
+    const products = [
+      {
+        name: 'Product 1',
+        productType: 'Type A',
+        project: project._id,
+        createdBy: user._id,
+        verified: true
+      },
+      {
+        name: 'Product 2',
+        productType: 'Type B',
+        project: project._id,
+        createdBy: user._id,
+        verified: false
+      }
+    ]
 
-Product.insertMany(products)
-  .then(() => {
+    await Product.insertMany(products)
     console.log('Seed data inserted successfully')
-    mongoose.connection.close()
-  })
-  .catch((error) => {
+  } catch (error) {
     console.error('Error inserting seed data:', error)
+  } finally {
     mongoose.connection.close()
-  })
+  }
+}
+
+seedProducts()
