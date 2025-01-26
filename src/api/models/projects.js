@@ -15,7 +15,7 @@ const projectSchema = new mongoose.Schema(
     products: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'products',
+        ref: 'Product',
         required: false
       }
     ],
@@ -27,6 +27,6 @@ const projectSchema = new mongoose.Schema(
   }
 )
 
-const Project = mongoose.model('Project', projectSchema, 'projects')
+const Project = mongoose.model('Project', projectSchema)
 
 module.exports = Project

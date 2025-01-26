@@ -62,34 +62,34 @@ const postProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params
-    const { name, productType, project } = req.body
+    const updates = req.body
 
-    // Encuentra y actualiza el producto, devolviendo el documento anterior
-    const oldProduct = await Product.findByIdAndUpdate(
-      id,
-      { name, productType, project },
-      { new: false } // Devuelve el documento anterior a la actualización
-    )
-
-    if (!oldProduct) {
-      return res.status(404).json({ message: 'Product not found' })
-    }
-
-    // Si se sube un nuevo archivo, actualiza el campo img y elimina el archivo anterior
+    // Verifica si se subió una nueva imagen
     if (req.file) {
-      deleteFile(oldProduct.img) // Elimina la imagen anterior
-      oldProduct.img = req.file.path // Actualiza la imagen con la nueva
+      const product = await Product.findById(id)
+      if (!product) return res.status(404).json({ error: 'Product not found' })
+
+      // Elimina la imagen anterior de Cloudinary si existe
+      if (product.img) {
+        const publicId = product.img.split('/').pop().split('.')[0]
+        await cloudinary.uploader.destroy(publicId)
+      }
+
+      // Sube la nueva imagen a Cloudinary
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'products'
+      })
+      updates.img = result.secure_url
     }
 
-    // Guarda el producto actualizado
-    const updatedProduct = await oldProduct.save()
-
-    res.json(updatedProduct)
+    // Actualiza el producto
+    const updatedProduct = await Product.findByIdAndUpdate(id, updates, {
+      new: true
+    })
+    res.status(200).json(updatedProduct)
   } catch (error) {
-    console.error('Error updating product:', error)
-    res
-      .status(500)
-      .json({ message: 'Error updating product', error: error.toString() })
+    console.error('Error en updateProduct:', error.message)
+    res.status(500).json({ error: error.message })
   }
 }
 

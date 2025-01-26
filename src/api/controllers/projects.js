@@ -1,103 +1,72 @@
-const deleteFile = require('../../utils/deleteFile')
 const Project = require('../models/projects')
+const cloudinary = require('../../config/cloudinary')
 
-const getProjects = async (req, res) => {
+exports.createProject = async (req, res) => {
   try {
-    const projects = await Project.find({})
-    res.json(projects)
-  } catch (error) {
-    res.status(500).json({ message: 'Error getting projects', error })
-  }
-}
-
-const postProject = async (req, res) => {
-  try {
-    const newProject = new Project(req.body)
+    // Subir archivo a Cloudinary si está presente
+    let fileUrl = null
     if (req.file) {
-      newProject.img = req.file.path
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'projects'
+      })
+      fileUrl = result.secure_url
     }
 
-    if (req.user.role === 'admin') {
-      newProject.verified = true
-    } else {
-      newProject.verified = false
-    }
-
-    const createdProject = await newProject.save()
-    res.status(201).json(createdProject)
+    const project = new Project({ ...req.body, fileUrl })
+    await project.save()
+    res.status(201).json(project)
   } catch (error) {
-    res.status(500).json({ message: 'Error creating project', error })
+    res.status(500).json({ error: error.message })
   }
 }
 
-const updateProject = async (req, res) => {
-  const { id } = req.params
-
+exports.getProjects = async (req, res) => {
   try {
-    // Encuentra el proyecto existente
-    const oldProject = await Project.findById(id)
-
-    if (!oldProject) {
-      return res.status(404).json({ message: 'Project not found' })
-    }
-
-    // Depuración: verifica que `req.file` contiene la imagen
-    console.log('Uploaded file:', req.file)
-
-    // Actualiza las propiedades del proyecto existente
-    const updates = { ...req.body }
-
-    if (req.file) {
-      updates.img = req.file.path
-      // Elimina la imagen antigua de Cloudinary
-      await deleteFile(oldProject.img)
-    }
-
-    // Preserva la lista de productos anterior y añade nuevos productos si los hay
-    updates.products = [...oldProject.products, ...(req.body.products || [])]
-
-    // Encuentra y actualiza el proyecto
-    const updatedProject = await Project.findByIdAndUpdate(id, updates, {
-      new: true
-    })
-
-    res.json(updatedProject)
+    const projects = await Project.find()
+      .populate('createdBy')
+      .populate('products')
+    res.status(200).json(projects)
   } catch (error) {
-    console.error('Error updating project:', error)
-    res
-      .status(500)
-      .json({ message: 'Error updating project', error: error.toString() })
+    res.status(500).json({ error: error.message })
   }
 }
 
-const deleteProject = async (req, res) => {
+exports.updateProject = async (req, res) => {
   try {
     const { id } = req.params
-    const projectDeleted = await Project.findByIdAndDelete(id)
+    const updates = req.body
 
-    if (!projectDeleted) {
-      return res.status(404).json({ message: 'Project not found' })
+    // Si hay un archivo nuevo, súbelo a Cloudinary y actualiza fileUrl
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'projects'
+      })
+      updates.fileUrl = result.secure_url
     }
 
-    // Asegúrate de que la propiedad `img` contiene la URL correcta
-    console.log('Image URL to be deleted:', projectDeleted.img)
+    const project = await Project.findByIdAndUpdate(id, updates, { new: true })
+    if (!project) return res.status(404).json({ error: 'Project not found' })
 
-    if (projectDeleted.img) {
-      await deleteFile(projectDeleted.img)
-    }
-
-    res.json({ message: 'Project removed' })
+    res.status(200).json(project)
   } catch (error) {
-    console.error('Error deleting project:', error)
-    res
-      .status(500)
-      .json({ message: 'Error deleting project', error: error.toString() })
+    res.status(500).json({ error: error.message })
   }
 }
 
-module.exports = {
-  getProjects,
-  postProject,
-  updateProject,
-  deleteProject
+exports.deleteProject = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id)
+    if (!project) return res.status(404).json({ error: 'Project not found' })
+
+    // Eliminar archivo de Cloudinary
+    if (project.fileUrl) {
+      const publicId = project.fileUrl.split('/').pop().split('.')[0]
+      await cloudinary.uploader.destroy(`projects/${publicId}`)
+    }
+
+    await project.remove()
+    res.status(200).json({ message: 'Project deleted' })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
 }

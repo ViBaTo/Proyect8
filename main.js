@@ -3,6 +3,7 @@ const express = require('express')
 const { connectDB } = require('./src/config/db')
 const mainRouter = require('./src/api/routes/main')
 const cloudinary = require('cloudinary').v2
+
 /* const cors = require('cors') */
 
 const app = express()

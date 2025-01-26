@@ -1,7 +1,7 @@
 const express = require('express')
 const {
   getProjects,
-  postProject,
+  createProject,
   updateProject,
   deleteProject
 } = require('../controllers/projects')
@@ -14,7 +14,7 @@ const projectRoutes = express.Router()
 projectRoutes
   .route('/')
   .get(getProjects)
-  .post([isAuth], upload.single('img'), postProject)
+  .post([isAuth], upload.single('img'), createProject)
 
 projectRoutes
   .route('/:id')

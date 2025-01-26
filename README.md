@@ -1,123 +1,130 @@
-Aquí tienes el README estructurado para tu proyecto, siguiendo el formato que has proporcionado:
+# Proyecto 8: API REST con Express, MongoDB y Cloudinary
 
-````markdown
-# Proyecto8
+## **Descripción del Proyecto**
 
-## Descripción
+Esta aplicación API REST permite gestionar usuarios, proyectos y productos. Incluye subida de archivos a Cloudinary y relaciones entre colecciones en una base de datos MongoDB Atlas.
 
-Proyecto8 es una API RESTful diseñada para gestionar proyectos y productos, ofreciendo funcionalidades de creación, lectura, actualización y eliminación (CRUD) para estas entidades. Además, la API permite la gestión de archivos mediante la integración con Cloudinary, asegurando que las imágenes asociadas a los proyectos y productos sean subidas y eliminadas correctamente. La API también implementa autenticación y autorización utilizando JSON Web Tokens (JWT), garantizando que solo los usuarios autorizados puedan realizar ciertas operaciones.
+## **Características**
 
-## Tecnologías Utilizadas
+- **CRUD completo** para usuarios, proyectos y productos.
+- **Relaciones** entre usuarios, proyectos y productos.
+- **Gestión de archivos**: Subida y eliminación en Cloudinary.
+- Implementación de **autenticación** y **autorización** para endpoints restringidos.
+- Datos iniciales generados mediante una **semilla** para pruebas.
 
-- **Node.js**: Entorno de ejecución para JavaScript en el servidor.
-- **Express.js**: Framework web para Node.js, utilizado para construir la API REST.
-- **MongoDB**: Base de datos NoSQL utilizada para almacenar la información de proyectos y productos.
-- **Mongoose**: Librería de modelado de datos para MongoDB, utilizada para interactuar con la base de datos de manera sencilla.
-- **Cloudinary**: Servicio de gestión de archivos en la nube, utilizado para almacenar y gestionar imágenes asociadas a proyectos y productos.
-- **Multer**: Middleware para manejar la subida de archivos en Node.js, integrado con Cloudinary.
-- **JSON Web Tokens (JWT)**: Tecnología utilizada para la autenticación y autorización de usuarios.
-- **bcrypt**: Herramienta para encriptar contraseñas y garantizar la seguridad de las credenciales de usuario.
-- **dotenv**: Carga variables de entorno desde un archivo `.env` para configurar el entorno de ejecución.
+---
 
-## Instalación
+## **Estructura del Proyecto**
 
-Para ejecutar este proyecto en tu entorno local, sigue los siguientes pasos:
+```
+Proyecto8/
+├── src/
+│   ├── api/
+│   │   ├── controllers/   # Controladores de lógica de negocio
+│   │   ├── models/        # Modelos de datos (Mongoose)
+│   │   ├── routes/        # Rutas de la API
+│   ├── config/            # Configuración (Cloudinary, MongoDB)
+│   ├── middlewares/       # Middleware para autenticación y manejo de archivos
+│   ├── seeds/             # Script para datos iniciales
+│   ├── utils/             # Utilidades varias
+├── .env                   # Variables de entorno
+├── main.js                # Entrada principal de la aplicación
+├── README.md              # Documentación
+```
 
-1. **Clonar el repositorio**:
+---
 
+## **Requisitos Previos**
+
+1. Node.js instalado.
+2. Base de datos MongoDB Atlas.
+3. Cuenta en Cloudinary.
+
+---
+
+## **Configuración del Proyecto**
+
+1. Clona el repositorio:
    ```bash
-   git clone https://github.com/tuusuario/Proyecto8.git
+   git clone <https://github.com/ViBaTo/Proyect8>
    cd Proyecto8
    ```
-````
-
-2. **Instalar dependencias**
-
-   Asegúrate de tener Node.js y npm instalados en tu sistema. Luego, ejecuta:
-
+2. Instala las dependencias:
    ```bash
    npm install
    ```
-
-3. **Configurar las variables de entorno**
-
-   Crea un archivo `.env` en la raíz del proyecto y configura las siguientes variables:
-
-   ```plaintext
+3. Configura las variables de entorno en el archivo `.env`:
+   ```env
    PORT=3003
-   MONGODB_URI=mongodb://localhost:27017/proyecto8
-   JWT_SECRET=your_jwt_secret_key
-   CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-   CLOUDINARY_API_KEY=your_cloudinary_api_key
-   CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+   DB_URL=<URL_DE_TU_BASE_DE_DATOS>
+   JWT_SECRET=<SECRET_JWT>
+   CLOUD_NAME=<NOMBRE_CLOUDINARY>
+   API_KEY=<API_KEY_CLOUDINARY>
+   API_SECRET=<API_SECRET_CLOUDINARY>
    ```
-
-4. **Iniciar el servidor**
-
+4. Ejecuta el servidor:
    ```bash
-   npm run dev
+   npm start
+   ```
+5. Genera datos iniciales:
+   ```bash
+   node src/seeds/seed_data.js
    ```
 
-## Endpoints
+---
 
-### Usuarios
+## **Endpoints de la API**
 
-- **GET /api/v1/users**: Obtener todos los usuarios (Requiere `isAdmin`)
-- **POST /api/v1/users/register**: Registrar un nuevo usuario
-- **POST /api/v1/users/login**: Iniciar sesión y obtener un token JWT
-- **PUT /api/v1/users/:id**: Actualizar el rol de un usuario (Requiere `isAdmin`)
-- **DELETE /api/v1/users/:id**: Eliminar un usuario (Requiere `isAdmin`)
+### **Usuarios**
 
-### Proyectos
+| Método | Endpoint                 | Descripción                         |
+| ------ | ------------------------ | ----------------------------------- |
+| POST   | `/api/v1/users/register` | Registra un nuevo usuario.          |
+| POST   | `/api/v1/users/login`    | Inicia sesión y devuelve un token.  |
+| GET    | `/api/v1/users`          | Obtiene todos los usuarios (Admin). |
+| PUT    | `/api/v1/users/:id`      | Actualiza datos de un usuario.      |
+| DELETE | `/api/v1/users/:id`      | Elimina un usuario (Admin).         |
 
-- **GET /api/v1/projects**: Obtener todos los proyectos
-- **POST /api/v1/projects**: Crear un nuevo proyecto
-- **PUT /api/v1/projects/:id**: Actualizar un proyecto existente (Requiere `isAdmin`)
-- **DELETE /api/v1/projects/:id**: Eliminar un proyecto (Requiere `isAdmin`)
+### **Proyectos**
 
-### Productos
+| Método | Endpoint               | Descripción                      |
+| ------ | ---------------------- | -------------------------------- |
+| GET    | `/api/v1/projects`     | Obtiene todos los proyectos.     |
+| POST   | `/api/v1/projects`     | Crea un nuevo proyecto.          |
+| PUT    | `/api/v1/projects/:id` | Actualiza un proyecto existente. |
+| DELETE | `/api/v1/projects/:id` | Elimina un proyecto existente.   |
 
-- **GET /api/v1/products**: Obtener todos los productos
-- **POST /api/v1/products**: Crear un nuevo producto (Requiere `isAuth`)
-- **PUT /api/v1/products/:id**: Actualizar un producto existente (Requiere `isAuth`)
-- **DELETE /api/v1/products/:id**: Eliminar un producto (Requiere `isAuth`)
-- **GET /api/v1/products/project/:projectId**: Obtener productos asociados a un proyecto específico
+### **Productos**
 
-## Ejemplos de Uso
+| Método | Endpoint                              | Descripción                      |
+| ------ | ------------------------------------- | -------------------------------- |
+| GET    | `/api/v1/products`                    | Obtiene todos los productos.     |
+| POST   | `/api/v1/products`                    | Crea un nuevo producto.          |
+| PUT    | `/api/v1/products/:id`                | Actualiza un producto existente. |
+| DELETE | `/api/v1/products/:id`                | Elimina un producto existente.   |
+| GET    | `/api/v1/products/project/:projectId` | Obtiene productos por proyecto.  |
 
-### Registro de un Usuario:
+---
 
-```bash
-curl -X POST http://localhost:3003/api/v1/users/register \
--H "Content-Type: application/json" \
--d '{
-  "name": "John Doe",
-  "email": "johndoe@example.com",
-  "password": "password123",
-  "role": "comercial"
-}'
-```
+## **Gestión de Archivos**
 
-### Iniciar Sesión:
+- Los archivos (imágenes) se suben a Cloudinary mediante `multer` y se guardan las URLs en la base de datos.
+- Al eliminar un producto o proyecto, se elimina automáticamente su archivo asociado en Cloudinary.
 
-```bash
-curl -X POST http://localhost:3003/api/v1/users/login \
--H "Content-Type: application/json" \
--d '{
-  "email": "johndoe@example.com",
-  "password": "password123"
-}'
-```
+---
 
-Esto devolverá un token JWT que deberás usar para acceder a las rutas protegidas.
+## **Semilla de Datos**
 
-### Acceder a Productos con Autenticación:
+El script de semillas (`src/seeds/seed_data.js`) genera:
+
+1. Usuarios de prueba.
+2. Proyectos asociados a los usuarios.
+3. Productos asociados a los proyectos.
+
+Ejecuta el script con:
 
 ```bash
-curl -X GET http://localhost:3003/api/v1/products \
--H "Authorization: Bearer <tu_token_jwt>"
+node src/seeds/seed_data.js
 ```
 
-```
-
-```
+---
